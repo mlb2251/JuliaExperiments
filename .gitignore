@@ -1,0 +1,5 @@
+.vscode
+
+# Rust build artifacts
+src/rust_backend/target/
+src/rust_backend/Cargo.lock

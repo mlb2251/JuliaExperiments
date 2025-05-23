@@ -1,0 +1,10 @@
+[package]
+name = "rust_backend"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+name = "rust_backend"
+crate-type = ["cdylib"]  # Create a C-compatible dynamic library
+
+[dependencies]
