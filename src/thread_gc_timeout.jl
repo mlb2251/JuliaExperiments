@@ -73,14 +73,12 @@ function test()
 end
 
 
-function compiles_a_lot_inner()
+function compiles_a_lot()
     x = []
-    for i in 1:1000000
-        if (log(abs(i*2 + 100 - i * i)) == 0) || (i % 10 == 0)
+    for i in 1:1000000 # adjust iterations to change work time
+        if (log(abs(i*2 + 100 - i * i)) == 0) || (i % 10 == 0) # adjust % (i mod _) to change gc time
             push!(x, i)
         end
     end
     return nothing
 end
-
-compiles_a_lot = compiles_a_lot_inner

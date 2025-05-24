@@ -46,7 +46,8 @@ end
 function Base.show(io::IO, t::TimeState)
     lb = lower_bound(t)
     ub = upper_bound(t)
-    print(io, "(wall_time=$(t.wall_time), upper_bound=$(ub), lower_bound=$(lb), bound_diff=$(ub-lb), gc=$(t.gc_total_time), safepoint=$(t.gc_total_time_to_safepoint), compile_time=$(t.compile_time), task_running_time=$(t.task_running_time), task_wall_time=$(t.task_wall_time))")
+    ubjl = upper_bound_julia(t)
+    print(io, "(wall_time=$(t.wall_time), lower_bound=$(lb), upper_bound_julia=$(ubjl), upper_bound=$(ub), bound_diff=$(ub-lb), gc=$(t.gc_total_time), safepoint=$(t.gc_total_time_to_safepoint), compile_time=$(t.compile_time), task_running_time=$(t.task_running_time), task_wall_time=$(t.task_wall_time))")
 end
 
 function Base.:(-)(a::TimeState, b::TimeState)
