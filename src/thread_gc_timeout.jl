@@ -7,35 +7,38 @@ function rust_test()
     N = 2
     @assert Threads.nthreads() == 2 "This test requires multiple threads"
 
-    println("Testing safe gc")
-    Threads.@threads :greedy for i in 1:N
-        if i % 2 == 0
-            res, t = @ttime blackbox(rust_gc_safe)
-            println("Expect 5 seconds")
-            println("safe rust_gc_safe time: ", t)
-            # @assert upper_bound(t)/1e9 > 5. "rust_busy should of course take 5 seconds"
-        else
-            res, t = @ttime blackbox(gc_busy)
-            println("Expect <<5 seconds")
-            println("safe gc_busy time: ", t)
-            # @assert upper_bound(t)/1e9 < 5. "gc_busy should be quick"
-        end
-    end
-
     println("Testing unsafe gc")
     Threads.@threads :greedy for i in 1:N
         if i % 2 == 0
             res, t = @ttime blackbox(rust_gc_unsafe)
             println("Expect 5 seconds")
             println("unsafe rust_gc_unsafe time: ", t)
-            # @assert upper_bound(t)/1e9 > 5. "rust_busy should of course take 5 seconds"
         else
             res, t = @ttime blackbox(gc_busy)
             println("Expect >>5 seconds")
             println("unsafe gc_busy time: ", t)
-            # @assert upper_bound(t)/1e9 > 3. "gc_busy should compete with unsafe and take long"
         end
     end
+
+
+    if !isdefined(JuliaExperiments.RustBackend, :rust_gc_safe)
+        printstyled("No gc_safe available for this version of Julia\n", color=:yellow)
+        return
+    end
+
+    println("Testing safe gc")
+    Threads.@threads :greedy for i in 1:N
+        if i % 2 == 0
+            res, t = @ttime blackbox(rust_gc_safe)
+            println("Expect 5 seconds")
+            println("safe rust_gc_safe time: ", t)
+        else
+            res, t = @ttime blackbox(gc_busy)
+            println("Expect <<5 seconds")
+            println("safe gc_busy time: ", t)
+        end
+    end
+
 end
 
 

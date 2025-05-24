@@ -2,10 +2,10 @@
 
 THREADS=2
 
-beta-rust:
+beta-ffi-gc:
 	julia +1.12.0-beta3 -t$(THREADS) --project -e 'using JuliaExperiments; JuliaExperiments.rust_test()'
 
-stable-rust:
+stable-ffi-gc:
 	julia +1.11.4 -t$(THREADS) --project -e 'using JuliaExperiments; JuliaExperiments.rust_test()'
 
 

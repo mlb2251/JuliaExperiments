@@ -1,7 +1,5 @@
 
 
-
-
 const ttime_is_init = Ref(false)
 const has_task_metrics = isdefined(Base.Experimental, :task_metrics)
 

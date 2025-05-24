@@ -22,9 +22,10 @@ function rust_gc_unsafe()
     return nothing
 end
 
-function rust_gc_safe()
-    res = @ccall gc_safe=true LIB_PATH.add_numbers(Int32(0)::Int32, Int32(4)::Int32)::Int32
-    return nothing
+if VERSION >= v"1.12.0-beta3"
+    include("gc_safe.jl")
 end
+
+
 
 end # module RustBackend 
