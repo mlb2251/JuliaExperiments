@@ -1,3 +1,6 @@
+module Timing
+export ttime, @ttime, ttime_init, ttime_deinit, blackbox, ttime_is_init, has_task_metrics
+
 const ttime_is_init = Ref(false)
 const has_task_metrics = isdefined(Base.Experimental, :task_metrics)
 
@@ -57,6 +60,8 @@ Excludes time in sleep() or print() or file io or manual yields or anything
 else that might make this task pause.
 If task_running_time is not set because the julia version doesn't support it or ttime_init() was not called
 before entering the @threads block, then this will return the wall time which is still fine, just a less tight bound.
+Alternatively --task-metrics=yes could have been used as a julia CLI flag, which is the only way to make the
+main-thread task have task_running_time set.
 
 wall_time: includes GC, includes safepoint, includes compile time, includes yielded time
 task_time: includes GC, includes safepoint, includes compile time only when this thread did the compilation
@@ -67,7 +72,7 @@ which you'd like to be as high as possible, we kinda wish we didn't have to subt
 time but unfortunately we can't tell whether it was included in the task_running_time or not so we must subtract it off.
 """
 function task_time(t::TimeState)
-    @assert !isnothing(t.task_running_time) || t.task_running_time <= t.wall_time "sanity check"
+    @assert isnothing(t.task_running_time) || t.task_running_time <= t.wall_time || isapprox(t.task_running_time, t.wall_time; atol=.001) "sanity check: task_running_time=$(t.task_running_time) <= wall_time=$(t.wall_time)"
     isnothing(t.task_running_time) ? t.wall_time : t.task_running_time
 end
 
@@ -123,3 +128,66 @@ function ttime()
     )
 end
 
+function verify()
+    ttime_init()
+
+    if has_task_metrics
+        # run this test within a task so that we can see the task_running_time
+        t = Task(verify_task_metrics)
+        schedule(t)
+        wait(t)
+    else
+        printstyled("task_metrics not supported, skipping verify_task_metrics\n", color=:yellow)
+    end
+
+
+    return nothing
+end
+
+function verify_task_metrics()
+    println("Verifying that sleeping (and thus yielding) is not included in task_running_time...")
+    res, t = @ttime blackbox(() -> sleep(1))
+    # println("sleep(1) time: ", t)
+    @assert t.wall_time >= 1.
+    @assert t.task_running_time < 1.
+
+    println("Verifying that gc_total_time is included in task_running_time...")
+    function mostly_gc()
+        xs=Any[]
+        for i in 1:10000000
+            push!(xs,i)
+        end
+        xs=nothing
+        GC.gc(true)
+        nothing
+    end
+    res, t = @ttime blackbox(mostly_gc)
+    # println("mostly_gc() time: ", t)
+    @assert t.gc_total_time > t.wall_time/2
+    @assert task_time(t) - t.gc_total_time > 0.
+
+    println("Verifying that compile_time is included in task_running_time...")
+    res, t = @ttime blackbox(() -> some_global(Val(rand())))
+    # println("mostly_compile() time: ", t)
+    @assert t.compile_time > 0
+    @assert t.compile_time > t.wall_time/2
+    @assert task_time(t) - t.compile_time > 0.
+
+    return nothing
+end
+
+"""
+A function that must be recompiled with every new input :)
+"""
+function mostly_compile(::Val{T}) where T
+    if log(10) < 0
+        println("impossible branch")
+        return log.(rand(1000)) .* rand(1000)
+    end
+    return nothing
+end
+some_global = mostly_compile
+
+
+
+end # module Timing

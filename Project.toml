@@ -1,4 +1,10 @@
 name = "JuliaExperiments"
 uuid = "9286339f-4a4d-4cbb-80d8-0099f86f1433"
-authors = ["Maddy Bowers <mlbowers@mit.edu>"]
 version = "0.1.0"
+authors = ["Maddy Bowers <mlbowers@mit.edu>"]
+
+[deps]
+Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
+
+[compat]
+Revise = "3.7.6"
