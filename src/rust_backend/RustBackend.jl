@@ -23,7 +23,7 @@ end
 Calls the Rust hello_world function that prints "Hello World from Rust!"
 """
 function hello_world()
-    ccall((:hello_world, LIB_PATH), Cvoid, ())
+    @ccall LIB_PATH.hello_world()::Cvoid
 end
 
 """
@@ -34,8 +34,7 @@ Calls the Rust greet function with a name and returns the length of the greeting
 function greet(name::String)
     # Convert Julia string to bytes for passing to Rust
     name_bytes = Vector{UInt8}(name)
-    greeting_length = ccall((:greet, LIB_PATH), UInt64, (Ptr{Int8}, UInt64), 
-                           pointer(name_bytes), length(name_bytes))
+    greeting_length = @ccall LIB_PATH.greet(pointer(name_bytes)::Ptr{Int8}, length(name_bytes)::UInt64)::UInt64
     return Int(greeting_length)
 end
 
@@ -44,9 +43,17 @@ end
 
 Simple addition function implemented in Rust for testing basic FFI.
 """
+function add_numbers_unsafe(a::Integer, b::Integer)
+    println("thread $(Threads.threadid()) entering add_numbers")
+    result = @ccall LIB_PATH.add_numbers(Int32(a)::Int32, Int32(b)::Int32)::Int32
+    println("thread $(Threads.threadid()) exiting add_numbers")
+    return result
+end
+
 function add_numbers(a::Integer, b::Integer)
-    result = ccall((:add_numbers, LIB_PATH), Int32, (Int32, Int32), 
-                   Int32(a), Int32(b))
+    println("thread $(Threads.threadid()) entering add_numbers")
+    result = @ccall gc_safe=true LIB_PATH.add_numbers(Int32(a)::Int32, Int32(b)::Int32)::Int32
+    println("thread $(Threads.threadid()) exiting add_numbers")
     return result
 end
 

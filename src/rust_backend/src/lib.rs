@@ -28,6 +28,8 @@ pub extern "C" fn greet(name_ptr: *const i8, name_len: usize) -> usize {
 /// Simple math function to test basic FFI
 #[unsafe(no_mangle)] 
 pub extern "C" fn add_numbers(a: i32, b: i32) -> i32 {
+    // sleep for 1 second
+    std::thread::sleep(std::time::Duration::from_secs(5));
     a + b
 }
 

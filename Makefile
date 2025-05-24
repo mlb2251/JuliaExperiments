@@ -1,7 +1,19 @@
 
 
-thread_gc_timeout: instantiate
-	julia --project -e 'using JuliaExperiments; JuliaExperiments.test()'
+THREADS=2
+
+beta-rust:
+	julia +1.12.0-beta3 -t$(THREADS) --project -e 'using JuliaExperiments; JuliaExperiments.rust_test()'
+
+stable-rust:
+	julia +1.11.4 -t$(THREADS) --project -e 'using JuliaExperiments; JuliaExperiments.rust_test()'
+
+
+beta:
+	julia +1.12.0-beta3 -t$(THREADS) --project -e 'using JuliaExperiments; JuliaExperiments.test()'
+
+stable:
+	julia +1.11.4 -t$(THREADS) --project -e 'using JuliaExperiments; JuliaExperiments.test()'
 
 
 
