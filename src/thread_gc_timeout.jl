@@ -4,6 +4,7 @@ using Base.Threads
 export test, rust_test
 
 function rust_test()
+    ttime_init()
     N = 2
     @assert Threads.nthreads() == 2 "This test requires multiple threads"
 
@@ -26,7 +27,7 @@ function rust_test()
         return
     end
 
-    println("Testing safe gc")
+    printstyled("Testing safe gc\n", color=:green)
     Threads.@threads :greedy for i in 1:N
         if i % 2 == 0
             res, t = @ttime blackbox(rust_gc_safe)
@@ -72,9 +73,24 @@ function test()
         printstyled("second time: \n", color=:yellow)
         println(t2)
     end
-
 end
 
+function test_sleep()
+    ttime_init() # must happen outside of @threads if you want to see task_metrics
+
+    N = 4
+    times = Vector{Any}(undef, N)
+    @threads :greedy for i in 1:N
+        # first time should be slow because it's compiling
+        res, t = @ttime blackbox(sleep_a_lot)
+        times[i] = t
+    end
+
+    for (i, t) in enumerate(times)
+        printstyled("workload $i: \n", color=:green)
+        println(t)
+    end
+end
 
 function compiles_a_lot()
     x = []
@@ -83,5 +99,14 @@ function compiles_a_lot()
             push!(x, i)
         end
     end
+    return nothing
+end
+
+function sleep_a_lot()
+    t1 = Threads.threadid()
+    sleep(2) # this can cause a thread switch
+    print("") # this can cause a thread switch too
+    t2 = Threads.threadid()
+    println("threadid: $t1 -> $t2")
     return nothing
 end

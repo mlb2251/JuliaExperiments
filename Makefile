@@ -2,6 +2,10 @@
 
 THREADS=2
 
+beta-sleep:
+	julia +1.12.0-beta3 -t$(THREADS) --project -e 'using JuliaExperiments; JuliaExperiments.test_sleep()'
+
+
 beta-ffi-gc:
 	julia +1.12.0-beta3 -t$(THREADS) --project -e 'using JuliaExperiments; JuliaExperiments.rust_test()'
 
